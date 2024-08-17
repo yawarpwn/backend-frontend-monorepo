@@ -4,20 +4,28 @@ import fileUpload from "express-fileupload";
 
 const app = express();
 
-app.use(cors());
 app.use(fileUpload());
+app.use(cors());
 
 const PORT = 3000;
 
-app.use("/", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Server ON");
 });
 
 app.post("/api/upload", (req, res) => {
-  res.status({
-    status: "success",
-    message: "File uploaded",
-  });
+  const { files } = req.files;
+  console.log(files);
+
+  // if (!files) return;
+  // console.log(files);
+
+  res
+    .json({
+      status: "success",
+      message: "File uploaded",
+    })
+    .status(200);
 });
 
 app.listen(PORT, () => {
