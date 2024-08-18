@@ -8,8 +8,40 @@
   </head>
   <body>
     <div id="app"></div>
+    <lazy-image
+      src="https://images.pexels.com/photos/14110135/pexels-photo-14110135.jpeg?cs=srgb&dl=pexels-maria-pinto-89809010-14110135.jpg&fm=jpg&w=4496&h=3000"
+      width="500"
+      height="500"
+    >
+      <div class="image-container">
+        <div class="image-skeleton"></div>
+      </div>
+    </lazy-image>
     <input name="filepond" type="file" multiple />
     <button id="send-button" type="button">Enviar</button>
     <script type="module" src="/main.js"></script>
   </body>
+  <style>
+    .image-container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+    }
+    .image-skeleton {
+      width: 100%;
+      height: 100%;
+      background-color: #222;
+      animation: pulse 2s linear infinite;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes pulse {
+      50% {
+        opacity: 0.5;
+      }
+    }
+  </style>
 </html>

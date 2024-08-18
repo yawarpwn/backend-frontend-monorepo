@@ -1,20 +1,33 @@
 // import "./style.css";
-import "filepond/dist/filepond.min.css";
-import * as FilePond from "filepond";
+document.addEventListener("DOMContentLoaded", () => {
+  const skeleton = document.querySelector(".image-skeleton");
+  const image = document.querySelector("#main-image");
+  const src = image.getAttribute("src");
+  console.log(src);
 
-const inputEl = document.querySelector("input[type=file]");
-const sendButtoEl = document.querySelector("#send-button");
-const filepond = FilePond.create(inputEl);
+  fetch(src)
+    .then((res) => res.blob())
+    .then((blob) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
 
-sendButtoEl.addEventListener("click", () => {
-  filepond.setOptions({
-    server: {
-      url: "http://localhost:3000/api/upload",
-    },
-  });
-
-  filepond
-    .processFiles()
-    .then((res) => console.log(res))
-    .catch((err) => console.log(err));
+      reader.onloadend = () => {
+        image.src = reader.result;
+        skeleton.classList.add("hidden");
+        image.classList.remove("hidden");
+      };
+    });
 });
+
+class lazyImage extends HTMLImageElement {
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    console.log("connected callback");
+    this.src = this.getAttribute("src");
+  }
+}
+
+window.customElements.define("lazy-image", lazyImage);
