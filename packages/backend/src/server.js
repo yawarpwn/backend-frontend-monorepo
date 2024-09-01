@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
-import fs from "node:fs";
 import fileUpload from "express-fileupload";
-import Ftp from "ftp";
+import fs from "fs/promises";
+import sharp from "sharp";
+import { addImageWatermark } from "sharp-watermark";
 
 const app = express();
 
@@ -20,46 +21,36 @@ app.post(
     fileSize: 30000000, // Around 30MB
     abortOnLimit: true,
   }),
-  (req, res) => {
-    // const { images } = req.files;
-    //
-    // if (!images) res.sendStatus(400);
-    // // If doesn't have image mime type prevent from uploading
-    // if (!/^image/.test(images.mimetype)) return res.sendStatus(400);
 
-    const client = new Ftp();
+  async (req, res) => {
+    const { images } = req.files;
 
-    client.on("ready", () => {
-      console.log("Conectado al servidor FTP");
-      fs.readFile("uploads/njj-wallpaper.jpg", (error, data) => {
-        if (error) throw error;
+    if (!images) console.log("no images provided");
 
-        client.put(data, "/public_html/assets/wallpaper.jpg", (error) => {
-          if (error) throw error;
-          console.log("archivo subido exitosamente");
-          client.end();
-        });
-      });
-    });
+    try {
+      const thumbImage = await sharp(images.data)
+        .resize(200)
+        .toFile("assets/thumb.jpg");
 
-    client.on("error", (error) => {
-      console.log("Error al conectar al servidor FTP", error);
-      client.end();
-    });
+      const originalImageBuffer = await sharp(images.data)
+        .resize(1000)
+        .toBuffer();
 
-    client.connect({
-      host: "ftp.tellsenales.com",
-      user: "neyda@tellsenales.com",
-      password: "Ne071020$",
-      port: 21,
-    });
+      const watermarkedImage = await sharp(originalImageBuffer)
+        .composite([
+          {
+            input: "watermark-tellsenales-logo.svg",
+            gravity: "center",
+          },
+        ])
+        .sharpen()
+        .withMetadata()
+        .toFile("assets/watermark.jpg");
 
-    // const uploadPath = path.join(import.meta.dirname + "/../uploads/");
-    //
-    // images.mv(uploadPath + images.name);
-    //
-    // console.log(images);
-
+      fs.writeFile("assets/original.jpg", originalImageBuffer);
+    } catch (error) {
+      console.log(error);
+    }
     res
       .json({
         status: "success",
